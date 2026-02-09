@@ -17,18 +17,31 @@ const app = express();
 
 // Middleware
 // CORS configuration - allows local development and production frontend
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'https://hotelproj-frontend.vercel.app',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, Postman)
+    // Allow requests with no origin (like mobile apps, Postman, server-side requests)
     if (!origin) return callback(null, true);
     
-    // Always allow localhost for development
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Allow any localhost origin for development
     if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
       return callback(null, true);
     }
     
-    // Allow production frontend URL if set
-    if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
+    // Allow Vercel preview deployments
+    if (origin.includes('.vercel.app')) {
       return callback(null, true);
     }
     
