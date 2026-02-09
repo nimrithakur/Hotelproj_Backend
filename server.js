@@ -97,6 +97,28 @@ app.get('/', (req, res) => {
   res.json({ message: 'Hotel Booking API is running!' });
 });
 
+// Health check route
+app.get('/api/health', async (req, res) => {
+  try {
+    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+    const hotelCount = mongoose.connection.readyState === 1 
+      ? await require('./models/hotel').countDocuments() 
+      : 0;
+    
+    res.json({
+      status: 'ok',
+      database: dbStatus,
+      hotelCount: hotelCount,
+      environment: process.env.NODE_ENV || 'development'
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message
+    });
+  }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

@@ -12,6 +12,7 @@ const router = express.Router();
 // @access  Public
 router.get('/search', async (req, res) => {
   try {
+    console.log('Search request received:', req.query);
     const query = {};
     
     // City filter (case-insensitive)
@@ -40,7 +41,9 @@ router.get('/search', async (req, res) => {
       query.starRating = { $gte: parseInt(req.query.starRating) };
     }
 
+    console.log('MongoDB query:', JSON.stringify(query));
     const hotels = await Hotel.find(query).sort({ price: 1 }); // Sort by price ascending
+    console.log(`Found ${hotels.length} hotels`);
 
     res.status(200).json({
       success: true,
@@ -50,9 +53,11 @@ router.get('/search', async (req, res) => {
     });
   } catch (error) {
     console.error('Error searching hotels:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Failed to search hotels',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
     });
   }
 });
