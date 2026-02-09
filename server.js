@@ -12,6 +12,7 @@ const hotelRoutes = require('./routes/hotelRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const newsletterRoutes = require('./routes/newsletterRoutes');
+const seedRoutes = require('./routes/seedRoutes');
 
 const app = express();
 
@@ -91,6 +92,7 @@ app.use('/api/hotels', hotelRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/seed', seedRoutes);
 
 // Root route
 app.get('/', (req, res) => {
