@@ -25,9 +25,12 @@ router.post(
   ],
   async (req, res) => {
     try {
+      console.log('Registration attempt:', { email: req.body?.email, name: req.body?.name });
+      
       // Validate input
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        console.log('Validation errors:', errors.array());
         return res.status(400).json({
           success: false,
           errors: errors.array(),
@@ -37,11 +40,13 @@ router.post(
       const { name, email, password } = req.body;
 
       // Check if user already exists
+      console.log('Checking for existing user...');
       const existingUser = await User.findOne({
         email: email,
       });
 
       if (existingUser) {
+        console.log('User already exists:', email);
         return res.status(400).json({
           success: false,
           message: 'Email already registered',
@@ -49,11 +54,13 @@ router.post(
       }
 
       // Create new user (password will be hashed by pre-save middleware)
+      console.log('Creating new user...');
       const user = await User.create({
         name,
         email,
         password,
       });
+      console.log('User created successfully:', user._id);
 
       // Generate token
       const token = generateToken(user._id);
@@ -72,10 +79,11 @@ router.post(
       });
     } catch (error) {
       console.error('Registration error:', error);
+      console.error('Error stack:', error.stack);
       res.status(500).json({
         success: false,
         message: 'Error registering user',
-        error: error.message,
+        error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message,
       });
     }
   }
@@ -92,9 +100,12 @@ router.post(
   ],
   async (req, res) => {
     try {
+      console.log('Login attempt:', { email: req.body?.email });
+      
       // Validate input
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        console.log('Validation errors:', errors.array());
         return res.status(400).json({
           success: false,
           errors: errors.array(),
@@ -104,9 +115,11 @@ router.post(
       const { email, password } = req.body;
 
       // Find user by email (include password for comparison)
+      console.log('Finding user...');
       const user = await User.findOne({ email }).select('+password');
 
       if (!user) {
+        console.log('User not found:', email);
         return res.status(401).json({
           success: false,
           message: 'Invalid credentials',
@@ -114,9 +127,11 @@ router.post(
       }
 
       // Check password
+      console.log('Checking password...');
       const isPasswordCorrect = await user.matchPassword(password);
 
       if (!isPasswordCorrect) {
+        console.log('Invalid password for user:', email);
         return res.status(401).json({
           success: false,
           message: 'Invalid credentials',
@@ -125,6 +140,7 @@ router.post(
 
       // Generate token
       const token = generateToken(user._id);
+      console.log('Login successful:', user._id);
 
       res.status(200).json({
         success: true,
@@ -140,10 +156,11 @@ router.post(
       });
     } catch (error) {
       console.error('Login error:', error);
+      console.error('Error stack:', error.stack);
       res.status(500).json({
         success: false,
         message: 'Error logging in',
-        error: error.message,
+        error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message,
       });
     }
   }
